@@ -9,3 +9,11 @@ ssh into minikube
 
 ### eval $(minikube docker-env)
 Evaluated minikube variables so that our local Docker client is using Docker server running inside the VM.
+
+### ps aux
+The ps aux command is a tool to monitor processes running on your Linux System.
+
+### Get a pod name
+```
+POD_NAME=$(kubectl get pods -o name | tail -1)
+```
