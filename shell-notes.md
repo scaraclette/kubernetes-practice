@@ -17,3 +17,17 @@ The ps aux command is a tool to monitor processes running on your Linux System.
 ```
 POD_NAME=$(kubectl get pods -o name | tail -1)
 ```
+
+### Check if service is running
+Get PORT from existing service
+```
+PORT=$(kubectl get svc go-demo-2-svc -o jsonpath="{.spec.ports[0].nodePort}")
+```
+Get minikube IP
+```
+IP=$(minikube ip)
+```
+Open tab
+```
+open "http://$IP:$PORT"
+```

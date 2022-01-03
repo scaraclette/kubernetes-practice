@@ -110,6 +110,8 @@ replicaset.apps/go-demo-2 configured
 
 # Services
 ... We need a stable, never-to-be-changed address that will forward requests to whichever Pod is currently running. Kubernetes Services provide addresses through which associated Pods can be accessed.
+<br>
+Motivation of using services: if some set of Pods (call them "backends") provides functionality to other Pods (call them "frontends") inside your cluster, how do the frontends find out and keep track of which IP address to connect to, so that the frontend can use the backend part of the workload?
 
 ### Exposing a Resource
 We can use kubectl expose command to expose a resource as a new Kubernetes Service. That resource can be a Deployment, another Serivce, a ReplicaSet, a ReplicationController, or a Pod.
@@ -119,3 +121,36 @@ Example is to expose the ReplicaSet that's already running in the cluster:
 kubectl expose rs go-demo-2 --name=go-demo-2-svc --target-port=28017 --type=NodePort
 ```
 The result is the target port will be exposed on every node of the cluster to the outside world and it will be routed to one of the Pods controlled by the ReplicaSet.
+<br>
+Get information about the service that was imperatively created:
+```
+kubectl describe svc go-demo-2-svc
+```
+The following information was given:
+```
+...
+Selector:                service=go-demo-2,type=backend
+Type:                    NodePort
+IP:                      10.0.0.194
+Port:                    <unset>  28017/TCP
+TargetPort:              28017/TCP
+NodePort:                 <unset>  31879/TCP
+Endpoints:               172.17.0.4:28017,172.17.0.5:28017
+Session Affinity:        None
+External Traffic Policy: Cluster
+Events:                  <none>
+```
+Notes:
+- NodePort automatically created ClusterIP type -> all the Pods in the cluster can access the TargetPort.
+- The Port is set to 28017 -> that is the port that the Pods can use to access the Service. Since we did not specify the port explicitly when we executed the command, its value is the same as the value of the TargetPort, which is the port of the associated Pod that will receive all the requests.
+- Serivce: provides access to Pods from inside the cluster (through Kube Proxy) or from outside the cluster (through Kube DNS).
+
+### Simple Commands
+Create a service from a file
+```
+kubectl create -f svc/go-demo-2-svc.yml
+```
+Delete a service from a file
+```
+kubectl delete -f svc/go-demo-2-svc.yml
+```
