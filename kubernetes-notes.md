@@ -177,3 +177,100 @@ We can also use 'kubectl edit' to update a deployment. Not the best way to edit.
 kubectl edit -f deploy/go-demo-2-db.yml
 ```
 We can alternatively use 'kubectl apply' command for yaml files that don't update frequently.
+
+### Deployment Strategies
+**Recreate Strategy** deployment strategy where we kill all the existing pods before an update. This strategy is much better suited for our single-replica database.
+
+**RollingUpdate Strategy** deployment allows us to deploy new releases without downtime.
+
+When to use what? Ask the question: would there be an adverse effect if two different versions of my application are running in parallel. An example would be to use the recreate strategy when running the database as a single replica. 
+
+### Simple Ccmmands
+1. create deployment
+```
+kubectl create -f deploy/go-demo-2-api.yml
+```
+2. Get deployment status
+```
+kubectl get -f deploy/go-demo-2-api.yml
+```
+3. Update pod image
+```
+kubectl set image -f deploy/go-demo-2-api.yml api=vfarcic/go-demo-2:2.0
+```
+4. Observe rollout status
+```
+kubectl rollout status -w -f deploy/go-demo-2-api.yml
+```
+5. Describe cluster
+```
+kubectl describe -f deploy/go-demo-2-api.yml
+```
+6. See rollout history. TODO: find alternative to --record flag since it's deprecated.
+```
+kubectl rollout history -f deploy/go-demo-2-api.yml
+```
+
+### Rolling Back Deployments
+1. Rollback to previous deployment
+```
+kubectl rollout undo -f deploy/go-demo-2-api.yml
+```
+
+### Deploying New Releases
+Deploy new release
+```
+kubectl set image -f deploy/go-demo-2-api.yml api=vfarcic/go-demo-2:3.0 --record
+```
+Revert to specific history
+```
+kubectl rollout undo -f deploy/go-demo-2-api.yml --to-revision=2
+```
+
+### Rolling Back Failed Deployments
+Set non-existing image
+```
+kubectl set image -f deploy/go-demo-2-api.yml api=vfarcic/go-demo-2:does-not-exist --record
+```
+Check ReplicaSet for type=api
+```
+kubectl get rs -l type=api
+```
+Check rollout status
+```
+kubectl rollout status -f deploy/go-demo-2-api.yml
+```
+Undo Rollout
+```
+kubectl rollout undo -f deploy/go-demo-2-api.yml
+```
+
+### Updating Multiple Objects
+Almost everything in Kubernetes is operated using label selectors. 
+Get deployment labels:
+```
+kubectl get deployments --show-labels
+```
+We want to update mongo Pods created using different-app-db and go-demo-2-db Deployments. Both are different services, but are uniquely idenitfied with the labels type=db and vendor=MongoLabs. Example of filtering deployments with same labels.
+```
+kubectl get deployments -l type=db,vendor=MongoLabs
+```
+Try updating multiple services
+```
+kubectl set image deployments -l type=db,vendor=MongoLabs db=mongo:3.4 --record
+```
+
+### Scaling Deployments
+Change spec.replicas in deploy/go-demo-2.yml to spec.replias=5. Apply changes:
+```
+kubectl apply -f deploy/go-demo-2-scaled.yml
+```
+
+When scaling is frequent and, hopefully, automated, we cannot expect to update YAML definitions and push them to Git. 
+
+The number of replicas should not be part of the design. Instead, they are a fluctuating number that changes continuously (or at least often), depending on the traffic, memory and CPU utilization, and so on.
+
+We can use imperative commands to scale:
+```
+kubectl scale deployment go-demo-2-api --replicas 8 --record
+```
