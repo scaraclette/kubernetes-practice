@@ -154,3 +154,26 @@ Delete a service from a file
 ```
 kubectl delete -f svc/go-demo-2-svc.yml
 ```
+
+# Deployments
+Display the current-context
+```
+kubectl config current-context
+```
+
+We regularly add --record to the kubectl create command which allows us to track each change to our resources such as deployments. (Note: --record flag is currently deprecated)
+```
+kubectl create -f deploy/go-demo-2-db.yml --record
+```
+Why create the cluster through a Deployment if it gives the same result as creating a ReplicaSet directly? The real advantage of Deployments come from being able to upgrade/downgrade pods.
+<br>
+### Making Changes
+Update image in pod example:
+```
+kubectl set image -f deploy/go-demo-2-db.yml db=mongo:3.4 --record 
+```
+We can also use 'kubectl edit' to update a deployment. Not the best way to edit.
+```
+kubectl edit -f deploy/go-demo-2-db.yml
+```
+We can alternatively use 'kubectl apply' command for yaml files that don't update frequently.
