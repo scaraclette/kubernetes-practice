@@ -1,6 +1,11 @@
 # Kubernetes Notes
 Mostly kubectl commands.
 
+Run with minikube:
+```
+minikube start --vm-driver=virtualbox
+```
+
 # General Architecture
 - When you deploy Kubernetes, you get a cluster: https://kubernetes.io/docs/concepts/overview/components/
 A cluster is divided into Control Plane and Nodes
